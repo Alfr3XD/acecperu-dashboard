@@ -13,6 +13,8 @@ Clona el repositorio en alguna parte de tu ordenador.
 git clone https://github.com/Alfr3XD/acecperu-dashboard.git
 ```
 Instalación de paquetes o dependencias.
+Por defecto nodejs viene con npm, asi que puedes usar npm.
+Puedes utilizar otro instalador de paquetes como *YARN* o *PNPM*
 
 **NPM**
 ```bash
