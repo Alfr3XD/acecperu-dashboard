@@ -1,0 +1,75 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+model Usuario {
+  id    Int     @id @default(autoincrement())
+  name  String @unique
+  password String
+  role String
+  createdTimestamp      DateTime @default(now())
+  auditoria Auditoria[]
+}
+
+model Auditoria {
+  id                Int      @id @default(autoincrement())
+  tabla_afectada     String
+  tipo_operacion     EnumTipoOperacion
+  fecha_modificacion DateTime @default(now())
+  cambios            String
+  usuario_id         Int
+  usuario            Usuario @relation(fields: [usuario_id], references: [id])
+}
+
+model Compra {
+  id Int @id @default(autoincrement())
+  cliente Cliente @relation(fields: [cliente_id], references: [id])
+  cliente_id Int
+  cantidad_comprada Int
+  fecha_compra DateTime @default(now())
+  productos Compra_Producto[]
+}
+
+model Compra_Producto {
+  id        Int       @id @default(autoincrement())
+  producto   Producto @relation(fields: [producto_id], references: [id])
+  producto_id Int @unique
+  compra   Compra @relation(fields: [compraId], references: [id])
+  compraId Int
+}
+
+model Producto {
+  id        Int       @id @default(autoincrement())
+  serie       Int
+  modelo     String
+  description String
+  frequency Float
+  velocidad     Float
+  poder     Float
+  voltage Float
+  createdTimestamp DateTime @default(now())
+  stock Int
+  precio_u Float
+  compra_producto Compra_Producto?
+}
+
+model Cliente {
+  id Int @id @default(autoincrement())
+  dni String
+  nombre String
+  direccion String?
+  telefono String
+  correo String?
+  compras Compra[]
+}
+
+
+enum EnumTipoOperacion {
+  INSERT
+  UPDATE
+  DELETE
+}

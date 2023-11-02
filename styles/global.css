@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    color: #343434;
+}
+
+svg {
+    width: 18px;
+    height: 18px;
+}
+
+.rows-color {
+    border-bottom-width: 0.5px;
+    border-color: rgba(110, 110, 110, 0.1);
+}
+
+.rows-color:last-child {
+    border-bottom-width: 0px;
+}
+
