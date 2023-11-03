@@ -119,7 +119,9 @@ function TableComponent({
 
         if(filterColumn) { 
             if(columnFilter !== "all" && Array.from(columnFilter).length !== filterColumn.options.length) {
-                filteredData = filteredData.filter((filter) => Array.from(columnFilter).includes(filter[filterColumn.column.uid]))
+                filteredData = filteredData.filter((filter) => {
+                    return Array.from(columnFilter).includes(filter[filterColumn.column.uid])
+                })
             }
         }
         return filteredData;
@@ -339,7 +341,7 @@ function TableComponent({
 
     const bottomContent = useMemo(() => {
         return (
-        <div className="py-2 px-2 flex justify-between items-center">
+        <div className="py-2 px-2 flex flex-wrap gap-4 justify-between items-center">
             <span className="w-[30%] text-small text-default-400">
                 {selectedKeys === "all"
                     ? "Todos los items seleccionados"
@@ -348,14 +350,14 @@ function TableComponent({
             </span>
             <Pagination
                 isCompact
-                showControls
+                showControls={false}
                 showShadow
                 color="primary"
                 page={page}
                 total={pages}
                 onChange={setPage}
             />
-            <div className="hidden sm:flex w-[30%] justify-end gap-2">
+            <div className="flex justify-end gap-2">
                 <Button
                     isDisabled={pages === 1}
                     size="sm"

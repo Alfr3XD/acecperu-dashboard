@@ -38,11 +38,7 @@ export function Sidebar({ navState }: {navState: [boolean, Dispatch<SetStateActi
             svg: BiSolidDashboard,
             href: "/dashboard"
         },
-        {
-            span: "Auditoria",
-            svg: IoIosPaper,
-            href: "/logs"
-        },
+        
         {
             span: "Productos",
             svg: MdInventory2,
@@ -56,6 +52,11 @@ export function Sidebar({ navState }: {navState: [boolean, Dispatch<SetStateActi
             span: "Usuarios",
             svg: PiUsersFill,
             href: "/users",
+        })
+        Navigation.push({
+            span: "Auditoria",
+            svg: IoIosPaper,
+            href: "/logs"
         })
     }
 

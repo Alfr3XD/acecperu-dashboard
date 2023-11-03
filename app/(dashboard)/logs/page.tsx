@@ -3,11 +3,18 @@ import { Auditoria, Usuario as UserProps, Usuario } from "@prisma/client";
 import { Button, Dropdown, DropdownItem, DropdownMenu, DropdownTrigger, Pagination, Select, SelectItem } from "@nextui-org/react";
 import { signOut, useSession } from "next-auth/react";
 import _ from "lodash"; 
-import {
-    IoIosExit
-} from 'react-icons/io';
 import { Key, useEffect, useState } from "react";
-import { BiChevronDown } from "react-icons/bi";
+import { BiChevronDown, BiSolidUser } from "react-icons/bi";
+import { formatoFechaModificacion } from "@Lib/FechaFormat";
+import {
+    AiTwotoneDelete
+} from "react-icons/ai";
+import {
+    MdAddBox, MdTipsAndUpdates
+} from "react-icons/md";
+import {
+    BsFillBookmarkFill, BsFillCalendarFill
+} from 'react-icons/bs';
 
 interface AuditoriaExtends extends Auditoria {
     usuario: Usuario
@@ -80,12 +87,11 @@ export default function ConfigPage() {
         )
     }
 
-    const Operaciones = ({prop}: {prop: "INSERT" | "UPDATE" | "DELETE" | null }) => {
+    const Operaciones = ({prop}: {prop: "INSERT" | "UPDATE" | "DELETE" }) => {
         const ae = {
-            "INSERT": <span className="text-xs p-2 bg-green-700 rounded-lg text-white font-bold"> CREACIÓN </span>,
-            "UPDATE": <span className="text-xs p-2 bg-yellow-500 rounded-lg text-white font-bold"> ACTUALIZACIÓN </span>,
-            "DELETE": <span className="text-xs p-2 bg-red-700 rounded-lg text-white font-bold"> ELIMINACIÓN </span>,
-            null: <span className="text-xs p-2 bg-slate-700 rounded-lg text-white font-bold"> NULL </span>,
+            "INSERT": <MdAddBox className="w-10 h-10 text-green-700" />,
+            "UPDATE": <MdTipsAndUpdates className="w-10 h-10 text-yellow-500"/>,
+            "DELETE": <AiTwotoneDelete className="w-10 h-10 text-red-700" />,        
         }
 
         return ae[prop as "INSERT" | "UPDATE" | "DELETE"]
@@ -211,46 +217,35 @@ export default function ConfigPage() {
                 {currentAuditoriaPage?.map((x, i) => 
                         <div key={i} className="p-4 bg-white rounded-2xl border border-black/10">
                             <h1 className="text-2xl font-bold uppercase"> Tabla {x.tabla_afectada} </h1>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 text-black/60">
                                 <Operaciones prop={x.tipo_operacion} />
                                 <ul>
-                                    <li className="text-xl font-bold"> Usuario: {x.usuario.name} </li>
-                                    <li> {x.cambios} </li>
-                                    <li className=" italic"> {x.fecha_modificacion.toString()} </li>
+                                    <li className="text-xl font-bold flex items-center gap-3"> 
+                                        <BiSolidUser className="w-4 h-4" />
+                                        <span> {x.usuario.name} </span> 
+                                    </li>
+                                    <li className="flex items-center gap-3"> 
+                                        <BsFillBookmarkFill className="w-4 h-4" />
+                                        <p> {x.cambios} </p>
+                                    </li>
+                                    <li className="flex items-center gap-3 font-semibold italic"> 
+                                        <BsFillCalendarFill className="w-4 h-4" />
+                                        <span>{formatoFechaModificacion(new Date(x.fecha_modificacion), true)}</span>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
                     )
                 }
                 <Pagination
+                    isCompact
+                    showControls
+                    showShadow
                     total={totalPages}
                     color="primary"
                     page={currentPage}
                     onChange={handlePageChange}
                 />
-
-                <div className="flex gap-2">
-                    <Button
-                        size="sm"
-                        variant="flat"
-                        color="primary"
-                        onPress={() =>
-                            setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev))
-                        }
-                    >
-                        Previous
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="flat"
-                        color="primary"
-                        onPress={() =>
-                            setCurrentPage((prev) => (prev < totalPages ? prev + 1 : prev))
-                        }
-                    >
-                        Next
-                    </Button>
-                </div>
             </div>
         </main>
     )

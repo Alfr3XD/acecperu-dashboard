@@ -45,7 +45,7 @@ export default function Page() {
         const body = {
             tabla_afectada: "Usuarios",
             tipo_operacion: "DELETE",
-            cambios: `eliminó al usuario con Id: ${id} - ${name}`,
+            cambios: `Eliminó al usuario con Id: ${id} - ${name}`,
             usuario_id: Number(Session.id)
         }
 

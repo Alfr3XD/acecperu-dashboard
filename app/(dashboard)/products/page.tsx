@@ -103,7 +103,7 @@ export default function ProductsPage() {
                         uid: item,
                         name: "DESCRIPCIÓN DEL PRODUCTO",
                     }
-                case "frecuencia":
+                case "frequency":
                     return {
                         uid: item,
                         name: "FRECUENCIA",
@@ -157,21 +157,6 @@ export default function ProductsPage() {
         precio_u: (value: string) => <span> S/ {value} </span>
     };
 
-    const filterColumns = {
-        /**
-        column: {
-            uid: "role",
-            name: "Filtro de Rol"
-        },
-        options: [
-            { name: "Sistema", uid: "system" },
-            { name: "Administradores", uid: "admin" },
-            { name: "Gestionadores", uid: "manager" },
-            { name: "Usuarios", uid: "user"}
-        ]
-        */
-    };
-
     useEffect(() => {
         Get();
     }, [])
@@ -190,10 +175,10 @@ export default function ProductsPage() {
                         <TableComponent
                             columns={HeadContent()}
                             data={Rows}
-                            serchColumnFilter="model"
+                            serchColumnFilter="modelo"
                             selectedColumnsKey={setSelectAllChecked}
                             emptyBody="No se contró contenido"
-                            searchPlaceholder="Buscar a producto por nombre..."
+                            searchPlaceholder="Buscar a producto por modelo..."
                             keyTarget="id"
                             isLoading={isLoading}
                             customCellsRender={customCellsRender}
@@ -259,7 +244,6 @@ const AreaChart = ({
       
     const pricesByModel: Record<string, number[]> = {};
 
-    // Recopilar los precios de los productos por modelo
     Rows.forEach((producto) => {
         const { modelo, precio_u } = producto;
         if (!pricesByModel[modelo]) {
@@ -269,7 +253,6 @@ const AreaChart = ({
     });
 
 
-    // Preparar datos y etiquetas para el gráfico
     const labels = Object.keys(pricesByModel);
     const datasets = [
         {
@@ -277,7 +260,6 @@ const AreaChart = ({
           label: 'Precios por modelo',
           data: labels.map((modelo) => {
             const preciosModelo = pricesByModel[modelo] || [];
-            // Calcula un valor basado en los precios de este modelo
             return preciosModelo.reduce((acc, precio) => acc + precio, 0) / preciosModelo.length;
           }),
           borderColor: 'rgb(53, 162, 235)',
@@ -294,6 +276,7 @@ const AreaChart = ({
         responsive: true,
         plugins: {
           legend: {
+            display: false,
             position: 'bottom' as const,
           },
           title: {
@@ -334,7 +317,7 @@ const PieComp = ({
             label: 'Stock por modelo',
             data: stocks,
             backgroundColor: backgroundColor,
-            borderWidth: 1,
+            borderWidth: 2,
           },
         ],
       };
