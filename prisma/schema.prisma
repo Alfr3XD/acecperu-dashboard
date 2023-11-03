@@ -25,23 +25,6 @@ model Auditoria {
   usuario            Usuario @relation(fields: [usuario_id], references: [id])
 }
 
-model Compra {
-  id Int @id @default(autoincrement())
-  cliente Cliente @relation(fields: [cliente_id], references: [id])
-  cliente_id Int
-  cantidad_comprada Int
-  fecha_compra DateTime @default(now())
-  productos Compra_Producto[]
-}
-
-model Compra_Producto {
-  id        Int       @id @default(autoincrement())
-  producto   Producto @relation(fields: [producto_id], references: [id])
-  producto_id Int @unique
-  compra   Compra @relation(fields: [compraId], references: [id])
-  compraId Int
-}
-
 model Producto {
   id        Int       @id @default(autoincrement())
   serie       Int
