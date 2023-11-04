@@ -8,12 +8,19 @@ import {
     useSession
 } from "next-auth/react";
 import { Usuario } from "@Controller/usuario/type";
+import { createAuditoria } from "@Controller/auditoria/api";
+
+
+interface AuditoriaExtends extends Auditoria {
+    usuario: Usuario
+}
 
 export default function Page() {
     const [Columns, setColumns] = useState<string[]>([]);
     const [Rows, setRows] = useState<Usuario[] | []>([]);
     const [isLoading, setLoading] = useState(true);
     const [selectedRows, setSelectAllChecked] = useState<Usuario[]>();
+    const [auditoria, setAuditoria] = useState<AuditoriaExtends[]>([]);
 
     const {data: session} = useSession();
     const Session = (session?.user as Usuario);
@@ -41,23 +48,17 @@ export default function Page() {
         }
     }
 
-    const createAuditoriasa = async (id: number, name: string) => {
-        const body = {
-            tabla_afectada: "Usuarios",
-            tipo_operacion: "DELETE",
-            cambios: `Eliminó al usuario con Id: ${id} - ${name}`,
-            usuario_id: Number(Session.id)
-        }
-
-
-        const res = await fetch('/api/db/auditoria/create', {
+    const getAuditoria = async () => {
+        const res = await fetch('/api/db/auditoria/list', {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(body)
         })
+
+        const data = (await res.json() as AuditoriaExtends[]);
+        setAuditoria(data)
     }
 
     const DeleteUser = async(id: number) => {
@@ -94,6 +95,10 @@ export default function Page() {
     useEffect(() => {
         GetUsers();
     }, []); 
+
+    useEffect(() => {
+        getAuditoria();
+    }, [])
 
     async function DeleteUsers() {
         if(selectedRows) {
@@ -235,7 +240,7 @@ export default function Page() {
                                     />
                                 </div>
                                 <div className="col-span-4 lg:col-span-3 bg-white rounded-3xl p-4 border border-black/10">
-                                    <AreaChart Rows={Rows}/>
+                                    <GroupChart Rows={auditoria}/>
                                 </div>
                                 
                             </div>
@@ -267,63 +272,86 @@ import {
     Bar,
     Line
 } from 'react-chartjs-2';
-import { createAuditoria } from "@Controller/auditoria/api";
+import { Auditoria } from "@prisma/client";
 
-const AreaChart = ({
+const GroupChart = ({
     Rows
-}: {Rows: Usuario[]}) => {
+}: {Rows: AuditoriaExtends[]}) => {
+
     ChartJS.register(
         CategoryScale,
         LinearScale,
-        PointElement,
-        LineElement,
+        BarElement,
         Title,
         Tooltip,
-        Filler,
         Legend
     );
-      
-    const usersByMonth: Record<string, number> = {};
-    Rows.forEach((user) => {
-        const createdDate = new Date(user.createdTimestamp);
-        const month = createdDate.toLocaleString('es', { month: 'long' });
-        usersByMonth[month] = (usersByMonth[month] || 0) + 1;
+
+    const dataByUser: { [key: string]: { insert: number, update: number, delete: number } } = {};
+
+    Rows.forEach((row) => {
+        const userName = row.usuario.name;
+        const operationType = row.tipo_operacion.toUpperCase(); // Normaliza el tipo de operación a mayúsculas
+
+        if (!dataByUser[userName]) {
+        dataByUser[userName] = { insert: 0, update: 0, delete: 0 };
+        }
+
+        if (operationType === 'INSERT') {
+        dataByUser[userName].insert++;
+        } else if (operationType === 'UPDATE') {
+        dataByUser[userName].update++;
+        } else if (operationType === 'DELETE') {
+        dataByUser[userName].delete++;
+        }
     });
-      
-    const labels = [
-        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+
+    const userNames = Object.keys(dataByUser);
+    const insertData = userNames.map((userName) => dataByUser[userName].insert);
+    const updateData = userNames.map((userName) => dataByUser[userName].update);
+    const deleteData = userNames.map((userName) => dataByUser[userName].delete);
+
+    const datasets = [
+        {
+            label: 'INSERT',
+            data: insertData,
+            backgroundColor: 'rgba(41, 153, 39, 0.8)',
+        },
+        {
+            label: 'UPDATE',
+            data: updateData,
+            backgroundColor: 'rgba(189, 117, 51, 0.8)',
+        },
+        {
+            label: 'DELETE',
+            data: deleteData,
+            backgroundColor: 'rgba(163, 26, 26, 0.8)',
+        },
     ];
-    
-      const data = {
-        labels,
-        datasets: [
-          {
-            fill: true,
-            label: 'Usuarios creados por mes',
-            data: labels.map((month) => usersByMonth[month.toLocaleLowerCase()] || 0),
-            borderColor: 'rgb(53, 162, 235)',
-            backgroundColor: 'rgba(53, 162, 235, 0.5)',
-          },
-        ],
+
+    const data = {
+        labels: userNames,
+        datasets: datasets,
     };
-    
+
     const options = {
+        indexAxis: 'y' as const,
         responsive: true,
+        maintainAspectRatio: false,
         plugins: {
           legend: {
-            position: 'bottom' as const,
+            position: 'right' as const,
           },
           title: {
             display: true,
-            text: 'Usuarios creados por mes',
+            text: 'Cantidad de cambios por usuario y tipo de cambio',
           },
         },
-        maintainAspectRatio: false,
-    };
-    
-    return <Line className="w-full h-full" options={options} data={data} />;
+      };
+  
+    return <Bar data={data} options={options} className="w-full h-full" />;
 }
+
 const PieComp = ({
     Rows
 }: {Rows: Usuario[]}) => {

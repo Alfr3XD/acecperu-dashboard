@@ -188,12 +188,15 @@ export default function ProductsPage() {
                             callbackEditButton={(x) => `products/${x.id}`}
                         />
                     </div>
-                    <div className="grid grid-cols-4 gap-4 ">
-                        <div className="col-span-4 lg:col-span-1 bg-white rounded-3xl p-4 border border-black/10">
+                    <div className="grid grid-cols-5 gap-4 mt-10">
+                        <div className="col-span-5 lg:col-span-1 bg-white rounded-3xl p-4 border border-black/10">
                             <PieComp Rows={Rows} />
                         </div>
-                        <div className="col-span-4 lg:col-span-3 bg-white rounded-3xl p-4 border border-black/10">
+                        <div className="col-span-5 lg:col-span-2 bg-white rounded-3xl p-4 border border-black/10">
                             <AreaChart Rows={Rows}/>
+                        </div>
+                        <div className="col-span-5 lg:col-span-2 bg-white rounded-3xl p-4 border border-black/10">
+                            <BarChart Rows={Rows}/>
                         </div>
                         
                     </div>
@@ -220,13 +223,11 @@ import {
     Filler,
 } from 'chart.js';
 import {
-    Pie,
     Bar,
     Doughnut,
     Line
 } from 'react-chartjs-2';
 import { createAuditoria } from "@Controller/auditoria/api";
-import { error } from "console";
 
 const AreaChart = ({
     Rows
@@ -242,52 +243,110 @@ const AreaChart = ({
         Legend
     );
       
-    const pricesByModel: Record<string, number[]> = {};
+    const stockByYearMonth: Record<string, number> = {};
 
     Rows.forEach((producto) => {
-        const { modelo, precio_u } = producto;
-        if (!pricesByModel[modelo]) {
-            pricesByModel[modelo] = [];
+        const { createdTimestamp, stock } = producto;
+        const date = new Date(createdTimestamp);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+
+        const yearMonthKey = `${year}-${month}`;
+
+        if (!stockByYearMonth[yearMonthKey]) {
+        stockByYearMonth[yearMonthKey] = 0;
         }
-        pricesByModel[modelo].push(precio_u);
+
+        stockByYearMonth[yearMonthKey] += stock;
     });
 
-
-    const labels = Object.keys(pricesByModel);
-    const datasets = [
-        {
-          fill: true,
-          label: 'Precios por modelo',
-          data: labels.map((modelo) => {
-            const preciosModelo = pricesByModel[modelo] || [];
-            return preciosModelo.reduce((acc, precio) => acc + precio, 0) / preciosModelo.length;
-          }),
-          borderColor: 'rgb(53, 162, 235)',
-          backgroundColor: 'rgba(53, 162, 235, 0.5)',
-        },
-    ];
+    const labels = Object.keys(stockByYearMonth);
+    const stockValues = labels.map((key) => stockByYearMonth[key]);
 
     const data = {
         labels: labels,
-        datasets: datasets,
+        datasets: [
+        {
+            fill: true,
+            label: 'Stock por Año y Mes',
+            data: stockValues,
+            borderColor: 'rgb(53, 162, 235)',
+            backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        },
+        ],
     };
-    
+
     const options = {
         responsive: true,
         plugins: {
-          legend: {
-            display: false,
-            position: 'bottom' as const,
-          },
-          title: {
-            display: true,
-            text: 'Precios por producto',
-          },
+            title: {
+                display: true,
+                text: 'Stock de productos por Año y Mes',
+            },
         },
         maintainAspectRatio: false,
     };
-    
+
     return <Line className="w-full h-full" options={options} data={data} />;
+}
+
+const BarChart = ({
+    Rows
+}: {Rows: Producto[]}) => {
+
+    ChartJS.register(
+        CategoryScale,
+        LinearScale,
+        BarElement,
+        Title,
+        Tooltip,
+        Legend
+    );
+
+    const stockByModel: Record<string, number> = {};
+
+    Rows.forEach((producto) => {
+        const { modelo, stock } = producto;
+
+        if (!stockByModel[modelo]) {
+        stockByModel[modelo] = 0;
+        }
+
+        stockByModel[modelo] += stock;
+    });
+
+    const labels = Object.keys(stockByModel);
+    const stockValues = labels.map((modelo) => stockByModel[modelo]);
+
+    const data = {
+        labels: labels,
+        datasets: [
+        {
+            label: 'Cantidad de Productos por Modelo',
+            data: stockValues,
+            borderColor: 'rgb(53, 162, 235)',
+            backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        },
+        ],
+    };
+
+    const options = {
+        indexAxis: 'y' as const,
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right' as const,
+          },
+          title: {
+            display: true,
+            text: 'Cantidad de cambios por usuario y tipo de cambio',
+          },
+        },
+      };
+
+    return <Bar className="w-full h-full" options={options} data={data} />;
+
 }
 
 const PieComp = ({
@@ -295,43 +354,29 @@ const PieComp = ({
 }: {Rows: Producto[]}) => {
     ChartJS.register(ArcElement, Tooltip, Legend);
 
-    const modelos = Rows.map(producto => producto.modelo);
-    const stocks = Rows.map(producto => producto.stock);
+    const stock50 = Rows.filter(producto => producto.frequency === 50).length;
+  const stock60 = Rows.filter(producto => producto.frequency === 60).length;
 
-    const generateRandomColors = (numColors: number) => {
-        const colors = [];
-        for (let i = 0; i < numColors; i++) {
-            const hue = (i * 360) / numColors;
-            colors.push(`hsl(${hue}, 70%, 50%)`);
-        }
-        return colors
-    };
-      
+  const data = {
+    labels: ['50 Hz', '60 Hz'],
+    datasets: [
+      {
+        data: [stock50, stock60],
+        backgroundColor: ['rgba(49, 73, 135, 0.8)', 'rgba(57, 145, 225, 0.8)'],
+      },
+    ],
+  };
 
-    const backgroundColor = generateRandomColors(modelos.length);
-
-    const data = {
-        labels: modelos,
-        datasets: [
-          {
-            label: 'Stock por modelo',
-            data: stocks,
-            backgroundColor: backgroundColor,
-            borderWidth: 2,
-          },
-        ],
-      };
-    
-    return <Doughnut className="w-full h-full" options={{
-        maintainAspectRatio: false,
-        plugins: {
-            title: {
-                display: true,
-                text: "Modelo de productos por stock"
-            },
-            legend: {
-                position: "bottom"
-            }
-        }
-    }} data={data} />;
+  return <Doughnut className="w-full h-full" options={{
+    maintainAspectRatio: false,
+    plugins: {
+      title: {
+        display: true,
+        text: "Recuento de productos por frecuencia",
+      },
+      legend: {
+        position: "bottom",
+      },
+    },
+  }} data={data} />;
 }
