@@ -39,16 +39,6 @@ model Producto {
   precio_u Float
 }
 
-model Cliente {
-  id Int @id @default(autoincrement())
-  dni String
-  nombre String
-  direccion String?
-  telefono String
-  correo String?
-}
-
-
 enum EnumTipoOperacion {
   INSERT
   UPDATE
