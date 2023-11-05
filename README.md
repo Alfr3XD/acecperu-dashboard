@@ -14,21 +14,16 @@ git clone https://github.com/Alfr3XD/acecperu-dashboard.git
 ```
 Instalación de paquetes o dependencias.
 Por defecto nodejs viene con npm, asi que puedes usar npm.
-Puedes utilizar otro instalador de paquetes como *YARN* o *PNPM*
 
 **NPM**
 ```bash
 npm install
 ```
+o
 
 **YARN**
 ```bash
 yarn install
-```
-
-**PNPM**
-```bash
-pnpm install
 ```
 
 Luego de la instalación de las dependencias, ahora toca configurar las variables de entorno.
@@ -40,20 +35,39 @@ Luego de la instalación de las dependencias, ahora toca configurar las variable
 	NEXTAUTH_URL=http://localhost:3000 #URL 
 
 	SECRET_KEY=keychangesecret #Token Random
+
+	# Primer usuario para acceso al dashboard
+
+	USERNAME="root" # nombre de usuario por defecto
+	PASSWORD="mypassword" # contraseña del usuario
 	```
 ## 📊 BASE DE DATOS
 Para la base de datos utilizamos prisma, para este caso vamos a generar la importación de modelos a nuestra base de datos que hemos creado en */prisma/schema.prisma* y luego lo migraremos a nuestra base de datos MySQL.
 Ejecuta:
+
+Gnenerar base de datos:
+```bash
+npm run prisma:generate
+```
+o
 ```bash
 yarn run prisma:generate
 ```
+
+Migrar base de datos
+
+```bash
+npm run prisma:migrate:dev
+```
+o
 ```bash
 yarn run prisma:migrate:dev
 ```
-Si todo fue ejecutado correctamente, debío crearte un usuario por defecto del modelo usuario.
+
+Si todo fue ejecutado correctamente, debío crearte un usuario por defecto del modelo usuario
 usuario: root
-contraseña: 123
-Si quieres cambiar la contraseña antes de migrar, puedes cambiar la contraseña desde "/prisma/seet.ts"
+contraseña: mypassword
+Si quieres cambiar las creedenciales del primer usuario a acceso a dashborad, cambialo en tu archivo .env
   
   ## 🪲 EJECUCIÓN
 
