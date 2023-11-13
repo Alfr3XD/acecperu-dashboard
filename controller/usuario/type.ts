@@ -3,5 +3,5 @@ export interface Usuario {
     name: string;
     password?: string;
     role: string;
-    createdTimestamp: string;
+    createdTimestamp?: string;
 };
