@@ -37,10 +37,10 @@ import {
 import { MdDelete, MdEdit, MdSearch } from "react-icons/md";
 import { BiChevronDown, BiPlus } from "react-icons/bi";
 import Link from "next/link";
-import { MagicMotion } from "react-magic-motion";
 
-const defaultColumns = (columns: { name: string; uid: string; sortable?: boolean }[]) => {
-    return [...columns, {uid: "actions", name: "ACCIONES"}]
+const defaultColumns = (columns: { name: string; uid: string; sortable?: boolean }[], isStatic?: boolean) => {
+    
+    return isStatic ? [...columns] : [...columns, {uid: "actions", name: "ACCIONES"}]
 }
 
 interface TableComponentProps {
@@ -68,6 +68,7 @@ interface TableComponentProps {
         },
         options: {name: string, uid: string}[];
     };
+    isStatic?: boolean;
 }
 
 function TableComponent({
@@ -86,11 +87,12 @@ function TableComponent({
     searchPlaceholder,
     filterColumn,
     disabledEditKeys,
+    isStatic
 }: TableComponentProps) {
     const [filterValue, setFilterValue] = useState("");
     const [selectedKeys, setSelectedKeys] = useState<'all' | Set<Key>>(new Set([]));
     const [columnFilter, setColumnFilter] = useState<'all' | Set<Key>>("all");
-    const [visibleColumns, setVisibleColumns] = useState<'all' | Set<Key>>(new Set(defaultColumns(columns).map((x) => x.uid)));
+    const [visibleColumns, setVisibleColumns] = useState<'all' | Set<Key>>(new Set(defaultColumns(columns, isStatic).map((x) => x.uid)));
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [sortDescriptor, setSortDescriptor] = useState<any>({
         column: "age",
@@ -148,8 +150,12 @@ function TableComponent({
 
     const renderCell = useCallback((item: any, columnKey: string, isEditDisabled?: boolean, isDisabledKey?: boolean) => {
         const cellValue = item[columnKey as keyof typeof item];
-        const columnRenderers: Record<string, (value: string) => JSX.Element> = {
-            actions: () => (
+        const columnRenderers: Record<string, (value: string) => JSX.Element> = { 
+            ...customCellsRender
+        };
+
+        if(!isStatic) {
+            columnRenderers.actions = () => (
                 <div className="flex justify-end items-center gap-2 w-fit">
                     <Link className={isEditDisabled ? "!pointer-events-none !cursor-not-allowed" : "hover:scale-110 transform"} href={callbackEditButton ? callbackEditButton(item) : "#"}>
                         
@@ -169,9 +175,8 @@ function TableComponent({
                         <MdDelete className="w-6 h-6" />
                     </Button>
                 </div>
-            ),
-            ...customCellsRender
-        };
+            )
+        } 
 
         if (columnRenderers[columnKey]) {
             return columnRenderers[columnKey](cellValue);
@@ -179,7 +184,7 @@ function TableComponent({
             return cellValue;
         }
         
-    }, [callbackDeleteButtonColumn, callbackEditButton, customCellsRender, keyTarget]);
+    }, [callbackDeleteButtonColumn, callbackEditButton, customCellsRender, keyTarget, isStatic]);
 
     const onNextPage = useCallback(() => {
         if (page < pages) {
@@ -298,23 +303,29 @@ function TableComponent({
                             ))}
                         </DropdownMenu>
                     </Dropdown>
-
-                    <Link href={callbackAddButton ? callbackAddButton : "#"}>
-                        <Button
-                            className="bg-green-600 hover:bg-green-700 text-white"
-                            startContent={<BiPlus />}
-                        >
-                            Añadir
-                        </Button>
-                    </Link>
-                    <Button
-                        onPress={onOpen}
-                        className="bg-red-600 hover:bg-red-700 text-white"
-                        startContent={<MdDelete />}
-                        isDisabled={isDisabledKey()}
-                    >
-                        Eliminar seleccionados
-                    </Button>
+                    
+                    {
+                        isStatic ? <></>:
+                        <>
+                            <Link href={callbackAddButton ? callbackAddButton : "#"}>
+                                <Button
+                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                    startContent={<BiPlus />}
+                                >
+                                    Añadir
+                                </Button>
+                            </Link>
+                            <Button
+                                onPress={onOpen}
+                                className="bg-red-600 hover:bg-red-700 text-white"
+                                startContent={<MdDelete />}
+                                isDisabled={isDisabledKey()}
+                            >
+                                Eliminar seleccionados
+                            </Button>
+                        </>
+                    }
+                    
                 </div>
             </div>
             <div className="flex flex-wrap gap-5 justify-center sm:justify-between items-center">
@@ -444,7 +455,7 @@ function TableComponent({
             bottomContent={bottomContent}
             bottomContentPlacement="outside"
             selectedKeys={selectedKeys}
-            selectionMode="multiple"
+            selectionMode={isStatic ? "none" : "multiple"}
             sortDescriptor={sortDescriptor as SortDescriptor}
             topContent={topContent}
             topContentPlacement="outside"

@@ -199,8 +199,9 @@ export default function Page() {
     const disabledRoles = ["admin"];
     const disabledKeysForRoles: string[] = []
     if((session?.user as {role: string}).role === "admin") {
-        const filtered = Rows.filter((user: Usuario) => disabledRoles.includes(user.role)).map(x => String(x.id))
+        const filtered = Rows.filter((user: Usuario) => disabledRoles.includes(user.role) && user.name !== Session.name ).map(x => String(x.id))
         disabledKeysForRoles.push(...filtered)
+        disabledKeysForRoles.push("1")
     }
     
     return (
@@ -225,8 +226,8 @@ export default function Page() {
                                     isLoading={isLoading}
                                     customCellsRender={customCellsRender}
                                     callbackAddButton="users/add"
-                                    disabledKeys={["1", (session?.user as {id: string}).id, ...disabledKeysForRoles]}
-                                    disabledEditKeys={["1", (session?.user as {id: string}).id, ...disabledKeysForRoles]}
+                                    disabledKeys={[...disabledKeysForRoles]}
+                                    disabledEditKeys={[...disabledKeysForRoles]}
                                     callbackDeleteButton={DeleteUsers}
                                     callbackDeleteButtonColumn={DeleteUser}
                                     callbackEditButton={(x) => `users/${x.id}`}

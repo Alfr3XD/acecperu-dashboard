@@ -83,21 +83,19 @@ export default function EditUser({user}: {user: any}) {
 
     const rolesValidation = ["system", "admin"]
 
-    if(String((session?.user as {id: string}).id) === String(user.id)) {
-        router.push("/me")
-        return <></>
+    if((session?.user as {role: string; name: string}).name !== user.name) {
+        if(!rolesValidation.includes(((session?.user as {role: string}).role)) || (session?.user as {role: string}).role === user.role ) {
+            return (
+                <div className="h-full px-8">
+                    <h1 className="text-4xl text-center font-bold pt-40">
+                        ERROR 401
+                    </h1>
+                    <p className='text-center mt-4'> NO TIENES PERMISOS PARA EDITAR A ESTE USUARIO </p>
+                </div>
+            )
+        }
     }
-
-    if(!rolesValidation.includes(((session?.user as {role: string}).role)) || (session?.user as {role: string}).role === user.role) {
-        return (
-            <div className="h-full px-8">
-                <h1 className="text-4xl text-center font-bold pt-40">
-                    ERROR 401
-                </h1>
-                <p className='text-center mt-4'> NO TIENES PERMISOS PARA EDITAR A ESTE USUARIO </p>
-            </div>
-        )
-    }
+    
 
     const SelectionRole = [
         {value: "manager", label: "Gestionador"},
@@ -108,7 +106,23 @@ export default function EditUser({user}: {user: any}) {
         SelectionRole.push({value: "admin", label: "Administrador"})
     }
 
-    const Forms = [
+    const Forms:
+        {
+            uid: string;
+            name: string;
+            placeholder: string;
+            value?: string;
+            isRequerid?: boolean;
+            maxLength?: number;
+            type?: string;
+            isSelect?: boolean;
+            selected?: string;
+            selectOptions?: {
+                value: string;
+                label: string;
+            }[];
+        }[]
+    = [
         {
             uid: "name",
             name: "Nombre del usuario",
@@ -124,7 +138,11 @@ export default function EditUser({user}: {user: any}) {
             type: "password",
             maxLength: 16,
         },
-        {
+        
+    ];
+
+    if((session?.user as {role: string; name: string}).name !== user.name) {
+        Forms.push({
             uid: "role",
             name: "Rol asignado",
             placeholder: user.role,
@@ -133,8 +151,8 @@ export default function EditUser({user}: {user: any}) {
             isSelect: true,
             selected: user.role,
             selectOptions: SelectionRole,
-        }
-    ];
+        });
+    }
 
     const filterUnwantedCharacters = (value: string) => {
         const regex = /^[a-zA-Z0-9]+$/;
@@ -167,14 +185,14 @@ export default function EditUser({user}: {user: any}) {
                                     onSelectionChange={setFormSelectValue}
                                     isRequired={atributo.isRequerid}
                                     isInvalid={error}
-                                    defaultSelectedKeys={[atributo.selected]}
+                                    defaultSelectedKeys={[atributo.selected as string]}
                                     defaultValue={atributo.value}
                                 >
-                                    {atributo.selectOptions.map((opt, i) => 
+                                    {atributo.selectOptions ? atributo.selectOptions.map((opt, i) => 
                                         <SelectItem key={opt.value} value={opt.value}>
                                             {opt.label}
                                         </SelectItem>
-                                    )}
+                                    ) : <></>}
                                 </Select>
                             )
                         }

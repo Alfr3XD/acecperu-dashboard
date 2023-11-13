@@ -87,14 +87,14 @@ export default function AddProduct() {
         })
     }
 
-    const rolesValidation = ["system"];
+    const adminroleValidation = ["system"];
 
     const SelectionRole = [
         {value: "manager", label: "Gestionador"},
         {value: "user", label: "Usuario"}
     ]
 
-    if(rolesValidation.includes(((session?.user as {role: string}).role))) {
+    if(adminroleValidation.includes(((session?.user as {role: string}).role))) {
         SelectionRole.push({value: "admin", label: "Administrador"})
     }
 
@@ -118,6 +118,18 @@ export default function AddProduct() {
         maxLength: 999,
         type: x.type === "String" || x.type === "DateTime" ? "text" : "number"
     }));
+
+    const validationRoles = ["system", "admin", "manager"];
+    if(!validationRoles.includes((session?.user as {role: string}).role)) {
+        return (
+            <div className="h-full px-8">
+                <h1 className="text-4xl text-center font-bold pt-40">
+                    ERROR 401
+                </h1>
+                <p className='text-center mt-4'> NO TIENES PERMISOS PARA ACCEDER A ESTE CONTENIDO </p>
+            </div>
+        )
+    }
 
     return (
         <main className="max-w-7xl h-full container mx-auto p-4">

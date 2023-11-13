@@ -186,6 +186,7 @@ export default function ProductsPage() {
                             callbackDeleteButton={DeleteProducts}
                             callbackDeleteButtonColumn={Delete}
                             callbackEditButton={(x) => `products/${x.id}`}
+                            isStatic={Session.role === "user" ? true : false}
                         />
                     </div>
                     <div className="grid grid-cols-5 gap-4 mt-10">
@@ -249,30 +250,47 @@ const AreaChart = ({
         const { createdTimestamp, stock } = producto;
         const date = new Date(createdTimestamp);
         const year = date.getFullYear();
-        const month = date.getMonth() + 1;
-
+        const month = date.getMonth() + 1; // Sumar 1 para que enero sea 1 en lugar de 0
         const yearMonthKey = `${year}-${month}`;
 
         if (!stockByYearMonth[yearMonthKey]) {
-        stockByYearMonth[yearMonthKey] = 0;
+            stockByYearMonth[yearMonthKey] = 0;
         }
 
         stockByYearMonth[yearMonthKey] += stock;
     });
 
     const labels = Object.keys(stockByYearMonth);
-    const stockValues = labels.map((key) => stockByYearMonth[key]);
+    const sortedLabels = labels.sort((a, b) => {
+        const [yearA, monthA] = a.split('-').map(Number);
+        const [yearB, monthB] = b.split('-').map(Number);
+        return new Date(yearA, monthA - 1) as any - (new Date(yearB, monthB - 1) as any);
+    });
+
+    // Crear un array de nombres de meses
+    const monthNames = new Array(12).fill(0).map((_, index) => {
+        const date = new Date(2000, index, 1); // Utiliza un año constante (por ejemplo, 2000)
+        return date.toLocaleString('default', { month: 'long' });
+    });
+
+    // Reemplazar las etiquetas numéricas con los nombres de los meses
+    const labelsWithMonthNames = sortedLabels.map((label) => {
+        const [, month] = label.split('-').map(Number);
+        return `${monthNames[month - 1]}-${label.split('-')[0]}`;
+    });
+
+    const stockValues = sortedLabels.map((key) => stockByYearMonth[key]);
 
     const data = {
-        labels: labels,
+        labels: labelsWithMonthNames,
         datasets: [
-        {
-            fill: true,
-            label: 'Stock por Año y Mes',
-            data: stockValues,
-            borderColor: 'rgb(53, 162, 235)',
-            backgroundColor: 'rgba(53, 162, 235, 0.5)',
-        },
+            {
+                fill: true,
+                label: 'Stock por Año y Mes',
+                data: stockValues,
+                borderColor: 'rgb(53, 162, 235)',
+                backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            },
         ],
     };
 
@@ -283,6 +301,9 @@ const AreaChart = ({
                 display: true,
                 text: 'Stock de productos por Año y Mes',
             },
+            legend: {
+                display: false
+            }
         },
         maintainAspectRatio: false,
     };
@@ -318,15 +339,24 @@ const BarChart = ({
     const labels = Object.keys(stockByModel);
     const stockValues = labels.map((modelo) => stockByModel[modelo]);
 
+    const labelsWithStock = labels.map((modelo, index) => ({ modelo, stock: stockValues[index] }));
+
+    // Ordenar el array de objetos por el campo 'stock' de forma descendente
+    labelsWithStock.sort((a, b) => b.stock - a.stock);
+
+    // Obtener los arrays ordenados
+    const sortedLabels = labelsWithStock.map(item => item.modelo);
+    const sortedStockValues = labelsWithStock.map(item => item.stock);
+
     const data = {
-        labels: labels,
+        labels: sortedLabels,
         datasets: [
-        {
-            label: 'Cantidad de Productos por Modelo',
-            data: stockValues,
-            borderColor: 'rgb(53, 162, 235)',
-            backgroundColor: 'rgba(53, 162, 235, 0.5)',
-        },
+            {
+                label: 'Cantidad de Productos por Modelo',
+                data: sortedStockValues,
+                borderColor: 'rgb(53, 162, 235)',
+                backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            },
         ],
     };
 
@@ -336,11 +366,12 @@ const BarChart = ({
         maintainAspectRatio: false,
         plugins: {
           legend: {
+            display: false,
             position: 'right' as const,
           },
           title: {
             display: true,
-            text: 'Cantidad de cambios por usuario y tipo de cambio',
+            text: 'Cantidad de productos por modelo',
           },
         },
       };

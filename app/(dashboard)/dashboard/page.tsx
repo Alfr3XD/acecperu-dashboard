@@ -22,7 +22,7 @@ export default function Page() {
     const [users, setUsers] = useState<Usuario[]>([]);
 
     const {data: session} = useSession();
-
+    const Session = (session?.user as Usuario);
     const cards = [
         {
             href: "/products",
@@ -133,45 +133,49 @@ export default function Page() {
                     </div> 
                 </div>
             </section>
+            {
+                ["user", "manager"].includes(Session.role) ?
+                <></>
+                :
+                <section className="mt-10 ">
+                    <div className="flex items-center gap-3 pb-4">
+                        <h1 className="text-2xl font-bold"> Usuarios </h1>
+                        <Link href="/users" className="underline underline-offset-2">
+                            ver usuarios
+                        </Link>
+                    </div>
+                    <div className="grid grid-cols-4 gap-3 h-48">
+                        <div className="bg-white p-4 rounded-2xl border border-black/10 text-center flex">
+                            <div className="m-auto">
+                                <h1> Usuarios registrados </h1>
+                                <strong className="text-5xl"> {users.length} </strong>
+                            </div>
+                        </div>  
 
-            <section className="mt-10 ">
-                <div className="flex items-center gap-3 pb-4">
-                    <h1 className="text-2xl font-bold"> Usuarios </h1>
-                    <Link href="/products" className="underline underline-offset-2">
-                        ver usuarios
-                    </Link>
-                </div>
-                <div className="grid grid-cols-4 gap-3 h-48">
-                    <div className="bg-white p-4 rounded-2xl border border-black/10 text-center flex">
-                        <div className="m-auto">
-                            <h1> Usuarios registrados </h1>
-                            <strong className="text-5xl"> {users.length} </strong>
-                        </div>
-                    </div>  
+                        <div className="bg-white p-4 rounded-2xl border border-black/10 text-center flex">
+                            <div className="m-auto">
+                                <h1> Administradores </h1>
+                                <strong className="text-5xl"> {obtenerPorcentajePorRol(users, "admin")} % </strong>
+                            </div>
+                        </div>  
 
-                    <div className="bg-white p-4 rounded-2xl border border-black/10 text-center flex">
-                        <div className="m-auto">
-                            <h1> Administradores </h1>
-                            <strong className="text-5xl"> {obtenerPorcentajePorRol(users, "admin")} % </strong>
-                        </div>
-                    </div>  
-
-                    <div className="bg-white p-4 rounded-2xl border border-black/10 text-center flex">
-                        <div className="m-auto">
-                            <h1> Gestionadores </h1>
-                            <strong className="text-5xl"> {obtenerPorcentajePorRol(users, "manager")} % </strong>
-                        </div>
-                    </div>  
-
-                    <div className="bg-white p-4 rounded-2xl border border-black/10 text-center flex">
-                        <div className="m-auto">
-                            <h1> Usuarios </h1>
-                            <strong className="text-5xl"> {obtenerPorcentajePorRol(users, "user")} % </strong>
-                        </div>
-                    </div>  
-
-                </div>
-            </section>
+                        <div className="bg-white p-4 rounded-2xl border border-black/10 text-center flex">
+                            <div className="m-auto">
+                                <h1> Gestionadores </h1>
+                                <strong className="text-5xl"> {obtenerPorcentajePorRol(users, "manager")} % </strong>
+                            </div>
+                        </div>  
+                        
+                        <div className="bg-white p-4 rounded-2xl border border-black/10 text-center flex">
+                            <div className="m-auto">
+                                <h1> Usuarios </h1>
+                                <strong className="text-5xl"> {obtenerPorcentajePorRol(users, "user")} % </strong>
+                            </div>
+                        </div>  
+                        
+                    </div>
+                </section>
+            }
         </main>
     )
 }
@@ -287,12 +291,12 @@ const AreaChart = ({
     const data = {
         labels: labels,
         datasets: [
-        {
-            label: 'Cantidad de Productos por Modelo',
-            data: stockValues,
-            borderColor: 'rgb(53, 162, 235)',
-            backgroundColor: 'rgba(53, 162, 235, 0.5)',
-        },
+            {
+                label: 'Cantidad de Productos por Modelo',
+                data: stockValues,
+                borderColor: 'rgb(53, 162, 235)',
+                backgroundColor: 'rgba(53, 162, 235, 0.5)',
+            },
         ],
     };
 
